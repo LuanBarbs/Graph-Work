@@ -1,0 +1,28 @@
+# depslib dependency file v1.0
+1721309051 source:c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\graph.cpp
+	"Graph.hpp"
+	<locale.h>
+
+1721307433 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\graph.hpp
+	"Node.hpp"
+	"defines.hpp"
+
+1718744043 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\node.hpp
+	"Edge.hpp"
+	"defines.hpp"
+
+1718743618 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\edge.hpp
+	"defines.hpp"
+
+1718744500 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\defines.hpp
+	<algorithm>
+	<cmath>
+	<fstream>
+	<iomanip>
+	<iostream>
+	<utility>
+	<vector>
+
+1721309071 source:c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\main.cpp
+	"Graph.hpp"
+
