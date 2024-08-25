@@ -43,12 +43,12 @@ int main(int argc, char* argv[])
 //    grafo.print_graph();
 
     // Removendo arestas.
-    cout << endl << "Removendo arestas." << endl;
+//    cout << endl << "Removendo arestas." << endl;
 //    grafo.remove_edge(0, 1);
 //    grafo.remove_edge(1, 2);
 //    grafo.remove_edge(1, 3);
-    grafo.remove_edge(2, 3);
-    grafo.print_graph();
+//    grafo.remove_edge(2, 3);
+//    grafo.print_graph();
 
     // Informações.
     cout << endl << "Informações." << endl;
