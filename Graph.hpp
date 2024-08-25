@@ -11,8 +11,8 @@ class Graph {
     public:
         // Assinatura dos métodos básicos para o funcionamento da classe.
         Graph(bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor padrão.
-        Graph(ifstream& instance);  // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
-        ~Graph();                   // Destrutor padrão.
+        Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
+        ~Graph(); // Destrutor padrão.
 
         void remove_node(size_t node_id);                                    // Remove o nó com base no identificador.
         void remove_edge(size_t node_id_1, size_t node_id_2);                // Remove a aresta entre os nós especificados.

@@ -4,7 +4,7 @@
 using namespace std;
 
 // Construtor a partir de uma instância lida de um arquivo.
-Graph::Graph(ifstream& instance) {
+Graph::Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes) {
     if(!instance.is_open()) {
         cout << "Erro ao abrir o arquivo." << endl;
         return;
@@ -15,9 +15,9 @@ Graph::Graph(ifstream& instance) {
     instance >> number_of_nodes;
     _number_of_nodes = 0;
     _number_of_edges = 0;
-    _directed = false;       // Grafo inicialmente não é direcionado.
-    _weighted_nodes = false; // Inicialmente os nós não tem peso.
-    _weighted_edges = true;  // Inicialmente as arestas tem peso.
+    _directed = isDirected;
+    _weighted_edges = isWeightedEdges;
+    _weighted_nodes = IsWeightedNodes;
     _first = nullptr;
     _last = nullptr;
 
