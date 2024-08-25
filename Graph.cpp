@@ -32,13 +32,13 @@ Graph::Graph(ifstream& instance) {
 }
 
 // Construtor padrão.
-Graph::Graph() {
-    // Inicialização do grafo vazio (sem nós ou arestas)
+Graph::Graph(bool isDirected, bool isWeightedEdges, bool IsWeightedNodes) {
+    // Inicialização do grafo vazio (sem nós ou arestas).
     _number_of_nodes = 0;
     _number_of_edges = 0;
-    _directed = false;       // Grafo inicialmente não é direcionado.
-    _weighted_nodes = false; // Inicialmente os nós não tem peso.
-    _weighted_edges = false; // Inicialmente as arestas não tem peso.
+    _directed = isDirected;
+    _weighted_edges = isWeightedEdges;
+    _weighted_nodes = IsWeightedNodes;
     _first = nullptr;
     _last = nullptr;
 }
@@ -128,7 +128,6 @@ void Graph::remove_node(size_t node_id) {
                 }
                 delete current_edge;
                 current_node->_number_of_edges--;
-                _number_of_edges--;
                 break;
             }
             previous_edge = current_edge;
@@ -162,12 +161,11 @@ void Graph::remove_edge(size_t node_id_1, size_t node_id_2) {
     // Verificando se a aresta existe.
     if(current_edge == nullptr) {
         cout << "A aresta não existe para o nó " << node_id_1 << "!" << endl;
-        cout << "Tente a combinação de nós ao contrário: (" << node_id_1 << ", " << node_id_2 << ") => (" << node_id_2 << ", " << node_id_1 << ")." << endl;
         return;
     }
 
     // Ajustando os ponteiros.
-    if(current_edge->_next_edge == nullptr && previous_edge == nullptr) { //A aresta a ser removida é a única.
+    if(current_edge->_next_edge == nullptr && previous_edge == nullptr) { // A aresta a ser removida é a única.
         node_1->_first_edge = nullptr;
     }
     else if(previous_edge == nullptr) { // A aresta a ser removida é a primeira.
@@ -182,6 +180,40 @@ void Graph::remove_edge(size_t node_id_1, size_t node_id_2) {
 
     // Decrementando o número de arestas do primeiro nó.
     node_1->_number_of_edges--;
+
+    if(!_directed) {
+        // Procurando a aresta a ser removida no nó 2 se o grafo não é direcionado.
+        current_edge = node_2->_first_edge;
+        previous_edge = nullptr;
+        while(current_edge != nullptr) {
+            if(current_edge->_target_id == node_id_1) break;
+            previous_edge = current_edge;
+            current_edge = current_edge->_next_edge;
+        }
+
+        // Verificando se a aresta existe.
+        if(current_edge == nullptr) {
+            cout << "A aresta não existe para o nó " << node_id_2 << "!" << endl;
+            return;
+        }
+
+        // Ajustando os ponteiros.
+        if(current_edge->_next_edge == nullptr && previous_edge == nullptr) { // A aresta a ser removida é a única.
+            node_2->_first_edge = nullptr;
+        }
+        else if(previous_edge == nullptr) { // A aresta a ser removida é a primeira.
+            node_2->_first_edge = current_edge->_next_edge;
+        }
+        else { // A aresta a ser removida não é a primeira.
+            previous_edge->_next_edge = current_edge->_next_edge;
+        }
+
+        // Deletando a aresta.
+        delete current_edge;
+
+        // Decrementando o número de arestas do segundo nó.
+        node_2->_number_of_edges--;
+    }
 
     // Decrementando o número de arestas do grafo.
     _number_of_edges--;
@@ -227,7 +259,7 @@ void Graph::add_edge(size_t node_id_1, size_t node_id_2, float weight) {
     Node* node_2 = search_node_by_id(node_id_2);
 
     if(node_1 != nullptr && node_2 != nullptr) {
-        // Criando a nova aresta.
+        // Criando a nova aresta para o nó 1.
         Edge* new_edge = new Edge;
         new_edge->_next_edge = nullptr;
         new_edge->_weight = weight;
@@ -246,6 +278,28 @@ void Graph::add_edge(size_t node_id_1, size_t node_id_2, float weight) {
         }
         // Incrementa o número de arestas do nó 1.
         node_1->_number_of_edges++;
+
+        if(!_directed) {
+            // Criando a nova aresta para o nó 2 se o grafo não for direcionado.
+            Edge* new_edge2 = new Edge;
+            new_edge2->_next_edge = nullptr;
+            new_edge2->_weight = weight;
+            new_edge2->_target_id = node_id_1;
+
+            // Adicionando a aresta para o nó 2.
+            if(node_2->_first_edge == nullptr) { // Não existe lista de adjacências para o nó 2.
+                node_2->_first_edge = new_edge2;
+            }
+            else { // Existe lista de adjacências para o nó 2.
+                Edge* current_edge = node_2->_first_edge;
+                while(current_edge->_next_edge != nullptr) {
+                    current_edge = current_edge->_next_edge;
+                }
+                current_edge->_next_edge = new_edge2;
+            }
+            // Incrementa o número de arestas do nó 2.
+            node_2->_number_of_edges++;
+        }
 
         // Incrementa o número de arestas do grafo.
         _number_of_edges++;
@@ -339,11 +393,6 @@ vector<size_t> Graph::search_nodes_in_adjacency_lists(size_t target_id) {
         current_node = current_node->_next_node;
     }
     return node_ids;
-}
-
-// Método para alterar o atributo _directed (define o grafo como direcionado ou não).
-void Graph::setDirected(bool directed) {
-    _directed = directed;
 }
 
 // Imprimindo informações gerais sobre o grafo.
