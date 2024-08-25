@@ -25,7 +25,6 @@ class Graph {
 
         // Assinatura de novos métodos criados para o trabalho.
         Node* search_node_by_id(size_t node_id);                          // Procura no grafo o nó com o Id fornecido.
-        vector<size_t> search_nodes_in_adjacency_lists(size_t target_id); // Procura no grafo por nós que tenham o id passado na sua lista de adjacência.
         void print_graph_infos();                                         // Imprime informações gerais sobre o grafo.
         void print_node_infos(size_t node_id);                            // Imprime informações gerais sobre o nó passado como parâmetro.
 

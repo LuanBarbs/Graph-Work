@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
     setlocale(LC_ALL,""); // Para permitir acentuações nos prints.
 
     // Criando o grafo.
-    Graph grafo = Graph(false, false, false);
+    Graph grafo = Graph(true, false, false);
     grafo.print_graph();
 
     // Adicionando nós.
@@ -34,29 +34,22 @@ int main(int argc, char* argv[])
     grafo.print_node_infos(2);
     grafo.print_node_infos(3);
 
-    // Removendo nós.
-//    cout << endl << "Removendo nós." << endl;
-//    grafo.remove_node(0);
-//    grafo.remove_node(1);
-//    grafo.remove_node(2);
-//    grafo.remove_node(3);
-//    grafo.print_graph();
+    // Fecho transitivo direto.
+    vector<size_t> direct_closure = grafo.direct_transitive_closure(1);
+    cout << endl << "Fecho transitivo direito do nó 1: " << endl << "[";
+    for(size_t i : direct_closure) {
+        cout << i << ",";
+    }
+    cout << "]" << endl;
 
-    // Removendo arestas.
-//    cout << endl << "Removendo arestas." << endl;
-//    grafo.remove_edge(0, 1);
-//    grafo.remove_edge(1, 2);
-//    grafo.remove_edge(1, 3);
-//    grafo.remove_edge(2, 3);
-//    grafo.print_graph();
+    // Fecho transitivo indireto.
+    vector<size_t> indirect_closure = grafo.indirect_transitive_closure(3);
+    cout << endl << "Fecho transitivo indireto do nó 3:" << endl << "[";
+    for(size_t i : indirect_closure) {
+        cout << i << ",";
+    }
+    cout << "]" << endl;
 
-    // Informações.
-    cout << endl << "Informações." << endl;
-    grafo.print_graph_infos();
-    grafo.print_node_infos(0);
-    grafo.print_node_infos(1);
-    grafo.print_node_infos(2);
-    grafo.print_node_infos(3);
 
     /*ifstream input_file;
     input_file.open("instances_example/50nU.dat");

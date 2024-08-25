@@ -377,24 +377,6 @@ Node* Graph::search_node_by_id(size_t node_id) {
     return nullptr;
 }
 
-// Metodo que procura no grafo por nós que tenham o Id, passado por parâmetro, na sua lista de adjacência e retorna um vetor com o Id desses nós.
-vector<size_t> Graph::search_nodes_in_adjacency_lists(size_t target_id) {
-    vector<size_t> node_ids;
-
-    Node* current_node = _first;
-    while(current_node != nullptr) {
-        Edge* current_edge = current_node->_first_edge;
-        while(current_edge != nullptr) {
-            if(current_edge->_target_id == target_id) {
-                node_ids.push_back(current_node->_id);
-            }
-            current_edge = current_edge->_next_edge;
-        }
-        current_node = current_node->_next_node;
-    }
-    return node_ids;
-}
-
 // Imprimindo informações gerais sobre o grafo.
 void Graph::print_graph_infos() {
     cout << endl << "Informações sobre o grafo: " << endl;
@@ -446,18 +428,18 @@ void Graph::print_node_infos(size_t node_id) {
 // Fecho Transitivo Direto.
 vector<size_t> Graph::direct_transitive_closure(size_t node_id) {
     if(!_directed) {
-        cout << "O grafo não é direcionado!" << endl;
+        cout << endl << "O grafo não é direcionado!" << endl;
         exit(1);
     }
     Node* node = search_node_by_id(node_id);
+    if(node == nullptr) {
+        cout << endl << "O nó não existe no grafo!" << endl;
+        exit(1);
+    }
     vector<size_t> closure;
     Edge* current_edge = node->_first_edge;
     while(current_edge != nullptr) {
-        bool insert_id = true;
-        for(size_t i : closure) {
-            if(closure[i] == current_edge->_target_id) insert_id = false;
-        }
-        if(insert_id) closure.push_back(current_edge->_target_id);
+        closure.push_back(current_edge->_target_id);
         current_edge = current_edge->_next_edge;
     }
     return closure;
@@ -466,7 +448,12 @@ vector<size_t> Graph::direct_transitive_closure(size_t node_id) {
 // Fecho Transitivo Indireto.
 vector<size_t> Graph::indirect_transitive_closure(size_t node_id) {
     if(!_directed) {
-        cout << "O grafo não é direcionado!" << endl;
+        cout << endl << "O grafo não é direcionado!" << endl;
+        exit(1);
+    }
+    Node* node = search_node_by_id(node_id);
+    if(node == nullptr) {
+        cout << endl << "O nó não existe no grafo!" << endl;
         exit(1);
     }
     vector<size_t> closure;
@@ -474,14 +461,15 @@ vector<size_t> Graph::indirect_transitive_closure(size_t node_id) {
     while(current_node != nullptr) {
         Edge* current_edge = current_node->_first_edge;
         while(current_edge != nullptr) {
-            if(current_edge->_target_id == node_id) {
+           if(current_edge->_target_id == node_id) {
                 closure.push_back(current_node->_id);
                 break;
-            }
-            current_edge = current_edge->_next_edge;
+           }
+           current_edge = current_edge->_next_edge;
         }
         current_node = current_node->_next_node;
     }
+
     return closure;
 }
 
