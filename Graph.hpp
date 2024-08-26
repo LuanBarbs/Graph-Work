@@ -11,7 +11,7 @@ class Graph {
     public:
         // Assinatura dos métodos básicos para o funcionamento da classe.
         Graph(bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor padrão.
-        Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
+        Graph(ifstream& instance, const string& filename); // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
         ~Graph(); // Destrutor padrão.
 
         void remove_node(size_t node_id);                                    // Remove o nó com base no identificador.
@@ -30,6 +30,9 @@ class Graph {
 
         vector<size_t> direct_transitive_closure(size_t node_id);   // Método que retorna o fecho transitivo direto de um vértice.
         vector<size_t> indirect_transitive_closure(size_t node_id); // Método que retorna o fecho transitivo indireto de um vértice.
+
+        vector<size_t> dijkstra(size_t node_id_1, size_t node_id_2);        // Método que retorna o caminho mínimo entre os dois vértices usando o algoritmo de Djkstra.
+        vector<size_t> floyd(size_t node_id_1, size_t node_id_2);  // Método que retorna o caminho mínimo entre os dois vértices usando o algoritmo de Floyd.
 
     private:
         size_t _number_of_nodes; // Representa o número de nós.

@@ -4,12 +4,13 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    setlocale(LC_ALL,""); // Para permitir acentuações nos prints.
+    setlocale(LC_ALL,""); // Para permitir acentuaÃ§Ãµes nos prints.
 
     // Criando o grafo.
     ifstream input_file;
-    input_file.open("instances_example/5nD.dat");
-    Graph grafo = Graph(input_file, true, true, false);
+    string filename = "instances_example/50nD.dat";
+    input_file.open(filename);
+    Graph grafo = Graph(input_file, filename);
     grafo.print_graph();
 
     // Gerando o arquivo do grafo.
@@ -20,9 +21,27 @@ int main(int argc, char* argv[])
     }
     grafo.print_graph(output_file);
 
+
+
+//    // Caminho mÃ­nimo usando Djkstra;
+//    vector<size_t> min_path_djkstra = grafo.dijkstra(1, 47);
+//    cout << endl << "Caminho minimo." << endl << "[";
+//    for(size_t i : min_path_djkstra) {
+//        cout << i << ",";
+//    }
+//    cout << "]" << endl;
+//
+//    // Caminho mÃ­nimo usando Floyd;
+//    vector<size_t> min_path_floyd = grafo.floyd(1, 47);
+//    cout << endl << "Caminho minimo." << endl << "[";
+//    for(size_t i : min_path_floyd) {
+//        cout << i << ",";
+//    }
+//    cout << "]" << endl;
+
     // Fecho transitivo direto.
 //    vector<size_t> direct_closure = grafo.direct_transitive_closure(1);
-//    cout << endl << "Fecho transitivo direito do nó 1: " << endl << "[";
+//    cout << endl << "Fecho transitivo direito do nÃ³ 1: " << endl << "[";
 //    for(size_t i : direct_closure) {
 //        cout << i << ",";
 //    }
@@ -30,7 +49,7 @@ int main(int argc, char* argv[])
 //
 //     Fecho transitivo indireto.
 //    vector<size_t> indirect_closure = grafo.indirect_transitive_closure(3);
-//    cout << endl << "Fecho transitivo indireto do nó 3:" << endl << "[";
+//    cout << endl << "Fecho transitivo indireto do nÃ³ 3:" << endl << "[";
 //    for(size_t i : indirect_closure) {
 //        cout << i << ",";
 //    }

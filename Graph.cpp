@@ -4,29 +4,40 @@
 using namespace std;
 
 // Construtor a partir de uma instância lida de um arquivo.
-Graph::Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes) {
-    if(!instance.is_open()) {
+Graph::Graph(ifstream& instance, const string& filename) {
+    if (!instance.is_open()) {
         cout << "Erro ao abrir o arquivo." << endl;
         return;
     }
 
-    // Inicialização do grafo com base no arquivo.
-    int number_of_nodes;
-    instance >> number_of_nodes;
+    // Determina se o grafo é direcionado ou não baseado no nome do arquivo.
+    if (filename.find('D') != string::npos) {
+        _directed = true;
+    }
+    else {
+        _directed = false;
+    }
+
+    // Inicializa as propriedades do grafo.
+    size_t numberOfNodes;
+    instance >> numberOfNodes;
     _number_of_nodes = 0;
     _number_of_edges = 0;
-    _directed = isDirected;
-    _weighted_edges = isWeightedEdges;
-    _weighted_nodes = IsWeightedNodes;
+    _weighted_edges = true;
+    _weighted_nodes = true;
     _first = nullptr;
     _last = nullptr;
 
     size_t node_id, target_id;
     float edge_weight;
 
+    // Adiciona todos os nós ao grafo.
+    for (size_t i = 1; i <= numberOfNodes; ++i) {
+        add_node(i);
+    }
+
+    // Adiciona as arestas ao grafo.
     while(instance >> node_id >> target_id >> edge_weight) {
-        add_node(node_id);
-        add_node(target_id);
         add_edge(node_id, target_id, edge_weight);
     }
 }
@@ -429,12 +440,12 @@ void Graph::print_node_infos(size_t node_id) {
 vector<size_t> Graph::direct_transitive_closure(size_t node_id) {
     if(!_directed) {
         cout << endl << "O grafo não é direcionado!" << endl;
-        exit(1);
+        return {};
     }
     Node* node = search_node_by_id(node_id);
     if(node == nullptr) {
         cout << endl << "O nó não existe no grafo!" << endl;
-        exit(1);
+        return {};
     }
     vector<size_t> closure;
     Edge* current_edge = node->_first_edge;
@@ -449,12 +460,12 @@ vector<size_t> Graph::direct_transitive_closure(size_t node_id) {
 vector<size_t> Graph::indirect_transitive_closure(size_t node_id) {
     if(!_directed) {
         cout << endl << "O grafo não é direcionado!" << endl;
-        exit(1);
+        return {};
     }
     Node* node = search_node_by_id(node_id);
     if(node == nullptr) {
         cout << endl << "O nó não existe no grafo!" << endl;
-        exit(1);
+        return {};
     }
     vector<size_t> closure;
     Node* current_node = _first;
@@ -472,6 +483,195 @@ vector<size_t> Graph::indirect_transitive_closure(size_t node_id) {
 
     return closure;
 }
+
+// Algoritmo de Djkstra para encontrar o caminho mínimo entre dois vérticies.
+vector<size_t> Graph::dijkstra(size_t node_id_1, size_t node_id_2) {
+    // Verifica se o grafo é vazio.
+    if(_number_of_nodes == 0) {
+        cout << endl << "Grafo vazio!" << endl;
+        return {};
+    }
+
+    // Verifica se o grafo é direcionado.
+    if(!_directed) {
+        cout << endl << "Grafo não direcionado!" << endl;
+        return {};
+    }
+
+    // Busca os dois nós.
+    Node* node_1 = search_node_by_id(node_id_1);
+    Node* node_2 = search_node_by_id(node_id_2);
+
+    if(node_1 == nullptr || node_2 == nullptr) {
+        cout << endl << "Não é possível achar o caminho mínimo (algum(s) dos dois nós não existe(m))!" << endl;
+        return {};
+    }
+
+    // Inicialização.
+    const float INF = numeric_limits<float>::infinity(); // Define uma constante para representar o infinito.
+    vector<float> dist(_number_of_nodes, INF);           // Vetor de distâncias pi. Todos os valores inicializados com infinito.
+    vector<size_t> S;                                    // Vetor para armazenar o conjunto de nós cujas distâncias mínimas já foram determinadas.
+    vector<size_t> S_bar;                                // Vetor que armazena o conjunto de nós cujas distâncias mínimas ainda não foram determinadas.
+    vector<size_t> previous(_number_of_nodes, -1);       // Vetor para armazenar os predecessores.
+    vector<size_t> path;                                 // Vetor para montar o caminho.
+
+    // Adiciona o nó origem em S.
+    S.push_back(node_id_1);
+
+    // A distância do primeiro nó para ele mesmo é zero.
+    dist[node_id_1-1] = 0;
+
+    // Adiciona os outros nós em S_bar.
+    Node* node = _first;
+    while(node != nullptr) {
+        if(node->_id != node_id_1) {
+            S_bar.push_back(node->_id);
+        }
+        node = node->_next_node;
+    }
+
+    // Adiciona as distâncias para os nós com conexões diretas para o nó 1.
+    Edge* edge = node_1->_first_edge;
+    while(edge != nullptr) {
+        dist[edge->_target_id-1] = edge->_weight;
+        previous[edge->_target_id-1] = node_id_1;
+        edge = edge->_next_edge;
+    }
+
+    while(!S_bar.empty()) {
+        // Seleciona j de S_bar com a menor distância para o nó 1.
+        size_t j = S_bar[0];
+        for(size_t i : S_bar) {
+            if(dist[i-1] < dist[j]) {
+                j = i;
+            }
+        }
+        // Remove j de S_bar e adiciona em S.
+        auto it = remove(S_bar.begin(), S_bar.end(), j);
+        S_bar.erase(it, S_bar.end());
+        S.push_back(j);
+
+        // Atualiza as distâncias para os vizinhos de j.
+        Node* node_j = search_node_by_id(j);
+        Edge* current_edge = node_j->_first_edge;
+        while(current_edge != nullptr) {
+            size_t k = current_edge->_target_id;
+            float weight = current_edge->_weight;
+
+            if(dist[j-1] + weight < dist[k - 1]) {
+                dist[k - 1] = dist[j - 1] + weight;
+                previous[k - 1] = j;
+            }
+
+            current_edge = current_edge->_next_edge;
+        }
+    }
+
+    // Reconstroi o caminho mínimo a partir do nó de destino até a origem.
+    for(size_t target = node_id_2; target != -1; target = previous[target - 1]) {
+        path.push_back(target);
+    }
+    reverse(path.begin(), path.end());
+
+    // Verifica se o primeiro nó do caminho é a origem, se não, caminho inválido.
+    if (path[0] != node_id_1) {
+        cout << endl << "Não existe conexão entre " << node_id_1 << " e " << node_id_2 << endl;
+        path.clear();
+    }
+
+    return path;
+}
+
+// Algoritmo de Floyd para encontrar o caminho mínimo entre dois vérticies.
+vector<size_t> Graph::floyd(size_t node_id_1, size_t node_id_2) {
+    // Verifica se o grafo é vazio.
+    if (_number_of_nodes == 0) {
+        cout << "Grafo vazio!" << endl;
+        return {};
+    }
+
+    // Verifica se o grafo é direcionado.
+    if(!_directed) {
+        cout << endl << "Grafo não direcionado!" << endl;
+        return {};
+    }
+
+    if(node_id_1 == node_id_2) {
+        return {node_id_1};
+    }
+
+    // Busca os dois nós.
+    Node* node_1 = search_node_by_id(node_id_1);
+    Node* node_2 = search_node_by_id(node_id_2);
+
+    if(node_1 == nullptr || node_2 == nullptr) {
+        cout << endl << "Não é possível achar o caminho mínimo (algum(s) dos dois nós não existe(m))!" << endl;
+        return {};
+    }
+
+    // Inicialização
+    const float INF = std::numeric_limits<float>::infinity();                               // Define uma constante para representar o infinito.
+    vector<vector<float>> dist(_number_of_nodes, vector<float>(_number_of_nodes, INF));     // Inicializa a matriz de distâncias com infinito.
+    vector<vector<size_t>> next(_number_of_nodes, vector<size_t>(_number_of_nodes, -1));    // Inicializa a matriz de predecessores com -1.
+
+    // Preenche a matriz de distâncias com as distâncias diretas e a matriz de predecessores.
+    Node* node = _first;
+    while(node != nullptr) {
+        Edge* edge = node->_first_edge;
+        while(edge != nullptr) {
+            size_t u = node->_id - 1; // Índice do nó atual.
+            size_t v = edge->_target_id - 1; // Índice do nó destino.
+            float weight = edge->_weight; // Peso da aresta.
+
+            // Atualiza a distância e o próximo nó no caminho mais curto.
+            dist[u][v] = weight;
+            next[u][v] = v;
+            edge = edge->_next_edge;
+        }
+        node = node->_next_node;
+    }
+
+    // A distância de um nó para ele mesmo é zero.
+    for (size_t i = 0; i < _number_of_nodes; ++i) {
+        dist[i][i] = 0;
+    }
+
+    // Aplica o algoritmo de Floyd para encontrar as distâncias mínimas entre todos os pares de vértices.
+    for(size_t k = 0; k < _number_of_nodes; ++k) {
+        for(size_t i = 0; i < _number_of_nodes; ++i) {
+            for(size_t j = 0; j < _number_of_nodes; ++j) {
+                // Atualiza a distância se uma rota mais curta for encontrada através do vértice k.
+                if (dist[i][k] < INF && dist[k][j] < INF && dist[i][j] > dist[i][k] + dist[k][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                    next[i][j] = next[i][k];
+                }
+            }
+        }
+    }
+
+    // Reconstruir o caminho mínimo do nó 1 para o nó 2.
+    vector<size_t> path;
+    size_t u = node_id_1 - 1;
+    size_t v = node_id_2 - 1;
+
+    // Verifica se existe um caminho entre os dois nós.
+    if (next[u][v] == -1) {
+        cout << "Não existe conexão entre " << node_id_1 << " e " << node_id_2 << endl;
+        return {}; // Retorna um vetor vazio se não houver caminho.
+    }
+
+    // Adiciona o nó de origem ao caminho.
+    path.push_back(node_id_1);
+
+    // Adiciona os nós ao longo do caminho até alcançar o nó de destino.
+    while (u != v) {
+        u = next[u][v]; // Move para o próximo nó no caminho.
+        path.push_back(u + 1); // Adiciona o próximo nó ao caminho.
+    }
+
+    return path;
+}
+
 
 
 
