@@ -11,7 +11,7 @@ class Graph {
     public:
         // Assinatura dos métodos básicos para o funcionamento da classe.
         Graph(bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor padrão.
-        Graph(ifstream& instance, const string& filename); // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
+        Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes); // Construtor que inicializa o grafo a partir de uma instância lida de um arquivo.
         ~Graph(); // Destrutor padrão.
 
         void remove_node(size_t node_id);                                    // Remove o nó com base no identificador.
@@ -28,11 +28,20 @@ class Graph {
         void print_graph_infos();                                         // Imprime informações gerais sobre o grafo.
         void print_node_infos(size_t node_id);                            // Imprime informações gerais sobre o nó passado como parâmetro.
 
-        vector<size_t> direct_transitive_closure(size_t node_id);   // Método que retorna o fecho transitivo direto de um vértice.
-        vector<size_t> indirect_transitive_closure(size_t node_id); // Método que retorna o fecho transitivo indireto de um vértice.
+        void direct_transitive_closure(size_t node_id);   // Método para encontrar o fecho transitivo direto de um vértice.
+        void indirect_transitive_closure(size_t node_id); // Método para encontrar o fecho transitivo indireto de um vértice.
 
-        vector<size_t> dijkstra(size_t node_id_1, size_t node_id_2);        // Método que retorna o caminho mínimo entre os dois vértices usando o algoritmo de Djkstra.
-        vector<size_t> floyd(size_t node_id_1, size_t node_id_2);  // Método que retorna o caminho mínimo entre os dois vértices usando o algoritmo de Floyd.
+        void dijkstra(size_t node_id_1, size_t node_id_2);  // Método para encontrar o caminho mínimo entre os dois vértices usando o algoritmo de Djkstra.
+        void floyd(size_t node_id_1, size_t node_id_2);     // Método para encontrar o caminho mínimo entre os dois vértices usando o algoritmo de Floyd.
+
+        void calculate_radius_diameter_center_periphery();  // Método para encontrar raio, diâmetro, centro e periferia do grafo.
+
+        void articulation_points(); // Método para encontrar vértices de articulação.
+
+        void prim_minimum_spanning_tree(vector<size_t> &subset_X);    // Método para encontrar a AGM sobre o subgrafo vértice-induzido usando o algoritmo de Prim.
+        void kruskal_minimum_spanning_tree(vector<size_t> &subset_X); // Método para encontrar a AGM sobre o subgrafo vértice-induzido usando o algoritmo de Kruskal.
+
+        void dfs_tree_with_back_edges(size_t start_node_id);  // Método que utiliza busca em profundidade (DFS) para gerar a árvore pela ordem de caminhamento em profundidade.
 
     private:
         size_t _number_of_nodes; // Representa o número de nós.
@@ -42,6 +51,12 @@ class Graph {
         bool _weighted_nodes;    // Diz se o grafo utiliza nós com pesos.
         Node *_first;            // Ponteiro para o primeiro nó do grafo.
         Node *_last;             // Ponteiro para o último nó do grafo.
+
+        // Método auxiliar de busca em profundidade(DFS) para encontrar pontos de articulação.
+        void DFSArticulation(size_t u, vector<bool> &visited, vector<int> &disc, vector<int> &low, vector<int> &parent, vector<bool> &ap);
+
+        // Método auxiliar de busca em profundidade(DFS).
+        void dfs_tree_with_back_edges_recursive(size_t u, vector<bool> &visited, vector<size_t> &parent, vector<pair<size_t, size_t>> &tree_edges, vector<pair<size_t, size_t>> &back_edges);
 };
 
 #endif // GRAPH_HPP_INCLUDED
