@@ -4,34 +4,53 @@
 using namespace std;
 
 // Construtor a partir de uma instância lida de um arquivo.
-Graph::Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool IsWeightedNodes) {
+Graph::Graph(ifstream& instance, bool isDirected, bool isWeightedEdges, bool isWeightedNodes) {
     if (!instance.is_open()) {
         cout << "Erro ao abrir o arquivo." << endl;
         return;
     }
 
     // Inicializa as propriedades do grafo.
-    size_t numberOfNodes;
-    instance >> numberOfNodes;
     _number_of_nodes = 0;
     _number_of_edges = 0;
     _directed = isDirected;
     _weighted_edges = isWeightedEdges;
-    _weighted_nodes = IsWeightedNodes;
+    _weighted_nodes = isWeightedNodes;
     _first = nullptr;
     _last = nullptr;
 
-    size_t node_id, target_id;
-    float edge_weight;
+    string line;
 
-    // Adiciona todos os nós ao grafo.
-    for (size_t i = 1; i <= numberOfNodes; ++i) {
-        add_node(i);
-    }
+    // Lê e processa o número de nós e arestas a partir do arquivo.
+    while(getline(instance, line)) {
+        if(line[0] == '#') continue;
 
-    // Adiciona as arestas ao grafo.
-    while(instance >> node_id >> target_id >> edge_weight) {
-        add_edge(node_id, target_id, edge_weight);
+        // Processa nós com peso.
+        if(isWeightedNodes && line.find("param w :=") != string::npos) {
+            while(getline(instance, line) && line[0] != ';') {
+                stringstream ss(line);
+                size_t node_id;
+                float weight;
+                while(ss >> node_id >> weight) {
+                    add_node(node_id, weight);
+                }
+            }
+        }
+
+        // Processa arestas.
+        if(line.find("set E :=") != string::npos) {
+            while(getline(instance, line) && line[0] != ';') {
+                stringstream ss(line);
+                size_t node_id1, node_id2;
+                char comma, par1, par2;
+                while(ss >> par1 >> node_id1 >> comma >> node_id2 >> par2) {
+                    if(comma != ',') {
+                        break;
+                    }
+                    add_edge(node_id1, node_id2);
+                }
+            }
+        }
     }
 }
 
@@ -380,5 +399,3 @@ Node* Graph::search_node_by_id(size_t node_id) {
     }
     return nullptr;
 }
-
-

@@ -24,6 +24,11 @@ class Graph {
         // Assinatura de novos métodos criados para o trabalho.
         Node* search_node_by_id(size_t node_id);                          // Procura no grafo o nó com o Id fornecido.
 
+        size_t get_number_of_nodes() { return _number_of_nodes; }; // Retorna o número de nós do grafo.
+        Node* get_first() { return _first; };                      // Retorna o primeiro nó do grafo.
+        bool isDirected() { return _directed; };                   // Retorna se o grafo é direcionado.
+        bool isWeightedEdges() { return _weighted_edges; };        // Retorna se o grafo é pesado nas arestas.
+        bool isWeightedNodes() { return _weighted_nodes; };        // Retorna se o grafo é pesado nos vértices.
 
     private:
         size_t _number_of_nodes; // Representa o número de nós.

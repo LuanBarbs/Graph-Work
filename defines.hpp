@@ -10,4 +10,6 @@
 #include <utility>   /* Implementações de alguns containers e operações de swap. */
 #include <vector>    /* Implementação do container vector e suas operações. */
 
+#include <random>
+
 #endif // DEFINES_HPP_INCLUDED
