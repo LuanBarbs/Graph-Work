@@ -414,6 +414,8 @@ vector<vector<Node*>> greedy_reactive_randomized_algorithm(Graph& graph, size_t 
 
 int main(int argc, char* argv[])
 {
+    srand(time(NULL)); // Inicializa a semente aleatória com o tempo atual
+
     // Criando o grafo.
     ifstream input_file;
     input_file.open("instances_example/n100plap2i1.txt");
@@ -441,7 +443,7 @@ int main(int argc, char* argv[])
     cout << "Gap total: " << total_gap << endl;
     cout << "Numero de nos: " << cont << endl << endl;
 
-    forest = greedy_randomized_algorithm(graph, p, 0.5);
+    forest = greedy_randomized_algorithm(graph, p, 0.1);
 
     total_gap = 0;
     cont = 0;
