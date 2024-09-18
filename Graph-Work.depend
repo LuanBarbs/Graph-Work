@@ -14,7 +14,7 @@
 1718743618 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\edge.hpp
 	"defines.hpp"
 
-1726615639 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\defines.hpp
+1726658806 c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\defines.hpp
 	<algorithm>
 	<cmath>
 	<fstream>
@@ -22,9 +22,8 @@
 	<iostream>
 	<utility>
 	<vector>
-	<random>
 
-1726615999 source:c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\main.cpp
+1726681442 source:c:\users\redga\onedrive\Área de trabalho\ufjf\01-disciplinas\05 - quinto período\teoria dos grafos\graph-work\main.cpp
 	"Graph.hpp"
 	"defines.hpp"
 

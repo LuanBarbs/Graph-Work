@@ -55,6 +55,22 @@ float total_gap_tree(vector<Node*>& tree, Node* u = nullptr, Node* v = nullptr) 
     return max_weight - min_weight;
 }
 
+/// Função auxiliar para calcular o gap de uma árvore ao se remover um nó.
+float remove_gap_tree(vector<Node*>& tree, Node* u) {
+        float min_weight = numeric_limits<float>::max();
+    float max_weight = numeric_limits<float>::lowest();
+
+    // Calcula o maior e o menor peso entre os nós da árvore, excluído o nó removido.
+    for (Node* node : tree) {
+        if(node->_id != u->_id) {
+            if (node->_weight < min_weight) min_weight = node->_weight;
+            if (node->_weight > max_weight) max_weight = node->_weight;
+        }
+    }
+
+    return max_weight - min_weight;
+}
+
 /// Função auxiliar para calcular o gap total das árvores.
 float calculate_total_gap(vector<vector<Node*>>& subgraphs) {
     float total_gap = 0.0f;
@@ -64,8 +80,8 @@ float calculate_total_gap(vector<vector<Node*>>& subgraphs) {
     return total_gap;
 }
 
-/// Função para a construção inicial da floresta utilizando Prim.
-vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
+/// Função principal do algoritmo guloso, constroi uma floresta utilizando Prim..
+vector<vector<Node*>> greedy_algorithm(Graph& graph, size_t p) {
     vector<vector<Node*>> forest; // Floresta com p árvores.
 
     // Verifica se o grafo está vazio.
@@ -73,9 +89,9 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
         cout << "Grafo vazio!" << endl;
         return forest;
     }
-    // Verifica se o p é valido.
+    // Verifica se o p é válido.
     if(p > graph.get_number_of_nodes() / 2) {
-        cout << "O numero de subgrafos eh invalido" << endl;
+        cout << "O numero de subgrafos eh invalido!" << endl;
         return forest;
     }
 
@@ -85,7 +101,7 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
     while(current_node != nullptr) {
         Edge* current_edge = current_node->_first_edge;
         while(current_edge != nullptr) {
-            // Verifica se a aresta já foi processada (evita duplicatas).
+            // Verifica se a aresta já foi processada (evita duplicações).
             if(current_node->_id < current_edge->_target_id) {
                 Node* target_node = graph.search_node_by_id(current_edge->_target_id);
                 EdgeWithDifference newEdge;
@@ -103,7 +119,7 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
         return e1.weight_diff < e2.weight_diff;
     });
 
-    // Passo 2: Enquanto o numero de árvores na floresta for menor que p.
+    // Passo 2: Construir a floresta inicial com p árvores.
     vector<bool> is_verified(graph.get_number_of_nodes(), false);
     int index = 0;
     while(forest.size() < p && index < edges.size()) {
@@ -112,7 +128,7 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
         Node* node2 = graph.search_node_by_id(edge.v);
 
         // Verifica se ambos os nós ainda não foram processados.
-        if(!is_verified[node1->_id - 1] && !is_verified[node2->_id -1]) {
+        if(!is_verified[node1->_id - 1] && !is_verified[node2->_id - 1]) {
             vector<bool> adjacency = check_adjacent_trees(forest, edge);
 
             // Se não houver árvores na floresta, cria a primeira árvore.
@@ -125,7 +141,7 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
                 int tree_id = -1;
                 float min_gap = numeric_limits<float>::max();
 
-                 // Para cada árvore na floresta, calcula-se o gap ao adicionar os nós u e v.
+                // Para cada árvore na floresta, calcula-se o gap ao adicionar os nós u e v.
                 for(int i = 0; i < forest.size(); i++) {
                     if(!adjacency[i]) {
                         float current_gap = total_gap_tree(forest[i], node1, node2);
@@ -154,132 +170,259 @@ vector<vector<Node*>> initial_construction(Graph& graph, size_t p) {
         index++;
     }
 
-    // Passo 3: Preencher as ávores com os vértices ainda não cobertos.
+    // Passo 3: Expandir as árvores com os vértices não cobertos.
     for(int i = 0; i < graph.get_number_of_nodes(); i++) {
         // Verifica se o nó i ainda não foi inserido em nenhuma árvore.
         if(!is_verified[i]) {
             Node* node = graph.search_node_by_id(i+1);
-            // Descobrir em qual árvore o nó i deve entrar.
-            int tree_id = -1;
-            float min_gap = numeric_limits<float>::max();
+            if(forest.size() < p) {
+                // Cria uma nova árvore e garante que tenha pelo menos dois vértices.
+                vector<Node*> new_tree;
+                new_tree.push_back(node);
 
-            // Para cada árvore, calcula o gap ao adicionar o nó.
-            for(int i = 0; i < forest.size(); i++) {
-                float current_gap = total_gap_tree(forest[i], node);
-                if(current_gap < min_gap) {
-                    min_gap = current_gap;
-                    tree_id = i;
+                // Encontra um segundo vértice não verificado para adicionar à nova árvore.
+                for(int j = i + 1; j < graph.get_number_of_nodes(); j++) {
+                    if(!is_verified[j]) {
+                        Node* second_node = graph.search_node_by_id(j+1);
+                        new_tree.push_back(second_node);
+                        is_verified[j] = true;
+                        break;
+                    }
                 }
-            }
 
-            // Adiciona o nó à árvore com o menor gap.
-            forest[tree_id].push_back(node);
+                forest.push_back(new_tree);
+            } else {
+                // Adiciona o nó à árvore com o menor gap.
+                int tree_id = -1;
+                float min_gap = numeric_limits<float>::max();
+
+                for(int j = 0; j < forest.size(); j++) {
+                    float current_gap = total_gap_tree(forest[j], node);
+                    if(current_gap < min_gap) {
+                        min_gap = current_gap;
+                        tree_id = j;
+                    }
+                }
+
+                forest[tree_id].push_back(node);
+            }
             is_verified[i] = true;
         }
     }
-    return forest; // Retorna a floresta final.
-}
 
-/// Função auxiliar para calcular o impacto da troca de pares de vértices.
-float calculate_swap_impact(vector<vector<Node*>>& subgraphs, size_t tree1_idx, size_t tree2_idx, Node* v1, Node* v2) {
-    vector<Node*> tree1 = subgraphs[tree1_idx];
-    vector<Node*> tree2 = subgraphs[tree2_idx];
-
-    // Calcula o gap total antes da troca.
-    float original_gap = calculate_total_gap(subgraphs);
-
-    // Simula a troca de v1 e v2 entre as árvores.
-    auto it1 = find(tree1.begin(), tree1.end(), v1);
-    auto it2 = find(tree2.begin(), tree2.end(), v2);
-    if(it1 != tree1.end() && it2 != tree2.end()) {
-        // Substitui os vértices nas árvores.
-        tree1.erase(it1);
-        tree1.push_back(v2);
-        tree2.erase(it2);
-        tree2.push_back(v1);
-    }
-
-    // Calcula o gap total após a troca.
-    vector<vector<Node*>> new_subgraphs = subgraphs;
-    new_subgraphs[tree1_idx] = tree1;
-    new_subgraphs[tree2_idx] = tree2;
-    float new_gap = calculate_total_gap(new_subgraphs);
-
-    // Retorna a diferença no gap.
-    return original_gap - new_gap;
-}
-
-/// Função auxiliar para encontrar a melhor troca de pares de vértices entre as árvores.
-void optimize_with_swaps(vector<vector<Node*>>& subgraphs) {
-    size_t num_trees = subgraphs.size();
-    bool improved = true;
-
-    while(improved) {
-        improved = false;
-        float best_impact = 0.0f;
-        size_t best_tree1_idx = 0;
-        size_t best_tree2_idx = 0;
-        Node* best_v1 = nullptr;
-        Node* best_v2 = nullptr;
-
-        // Tenta todas as possíveis trocas de pares de vértices entre as árvores.
-        for(size_t i = 0; i < num_trees; ++i) {
-            for(size_t j = i + 1; j < num_trees; ++j) {
-                for(Node* v1 : subgraphs[i]) {
-                    for(Node* v2 : subgraphs[j]) {
-                        float impact = calculate_swap_impact(subgraphs, i, j, v1, v2);
-                        if(impact > best_impact) {
-                            best_impact = impact;
-                            best_tree1_idx = i;
-                            best_tree2_idx = j;
-                            best_v1 = v1;
-                            best_v2 = v2;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Se uma melhoria foi encontrada, aplica a troca.
-        if(best_impact > 0) {
-            auto it1 = find(subgraphs[best_tree1_idx].begin(), subgraphs[best_tree1_idx].end(), best_v1);
-            auto it2 = find(subgraphs[best_tree2_idx].begin(), subgraphs[best_tree2_idx].end(), best_v2);
-            if(it1 != subgraphs[best_tree1_idx].end() && it2 != subgraphs[best_tree2_idx].end()) {
-                subgraphs[best_tree1_idx].erase(it1);
-                subgraphs[best_tree1_idx].push_back(best_v2);
-                subgraphs[best_tree2_idx].erase(it2);
-                subgraphs[best_tree2_idx].push_back(best_v1);
-            }
-            improved = true;
-        }
-    }
-}
-
-/// Função principal do algoritmo guloso.
-vector<vector<Node*>> greedy_algorithm(Graph& graph, size_t p) {
-    vector<vector<Node*>> subgraphs = initial_construction(graph, p);
-
-    // Otimizar a solução usando troca de pares de vértices entre árvores.
-    optimize_with_swaps(subgraphs);
-
-    return subgraphs;
+    return forest;
 }
 
 /// Função principal do algoritmo guloso randomizado adaptativo.
-vector<vector<Node*>> randomized_greedy_algorithm(Graph& graph, size_t p, float alpha) {
+vector<vector<Node*>> greedy_randomized_algorithm(Graph& graph, size_t p, float alfa) {
+    vector<vector<Node*>> forest;
+
+    // Verifica se o grafo está vazio.
+    if(graph.get_number_of_nodes() == 0) {
+        cout << "Grafo vazio!" << endl;
+        return forest;
+    }
+    // Verifica se o p é válido.
+    if(p > graph.get_number_of_nodes() / 2) {
+        cout << "O numero de subgrafos eh invalido!" << endl;
+        return forest;
+    }
+
+    // Passo 1: Ordenar as arestas (u, v) por valores não decrescentes dos gaps |w_u - w_v|.
+    vector<EdgeWithDifference> edges;
+    Node* current_node = graph.get_first();
+    while(current_node != nullptr) {
+        Edge* current_edge = current_node->_first_edge;
+        while(current_edge != nullptr) {
+            if(current_node->_id < current_edge->_target_id) {
+                Node* target_node = graph.search_node_by_id(current_edge->_target_id);
+                EdgeWithDifference newEdge;
+                newEdge.u = current_node->_id;
+                newEdge.v = target_node->_id;
+                newEdge.weight_diff = abs(current_node->_weight - target_node->_weight);
+                edges.push_back(newEdge);
+            }
+            current_edge = current_edge->_next_edge;
+        }
+        current_node = current_node->_next_node;
+    }
+    // Ordena as arestas pela diferença de peso entre os nós (não decrescente).
+    sort(edges.begin(), edges.end(), [](const EdgeWithDifference& e1, const EdgeWithDifference& e2) {
+        return e1.weight_diff < e2.weight_diff;
+    });
+
+    // Passo 2: Selecionar arestas randomicamente com base no alfa.
+    vector<bool> is_verified(graph.get_number_of_nodes(), false);
+    vector<bool> used_edges(edges.size(), false); // Vetor que marca arestas já usadas.
+    while(forest.size() < p) {
+        int rcl_size = max(1, (int)(alfa * edges.size())); // Define o tamanho da lista de candidatos restritos.
+        vector<int> rcl;
+
+        for(int i = 0; i < rcl_size; i++) {
+            // Adiciona à RCL apenas arestas que ainda não foram usadas.
+            if(!used_edges[i]) {
+                rcl.push_back(i);
+            }
+        }
+
+        // Se não houver arestas disponíveis, interrompe.
+        if(rcl.empty()) break;
+
+        int selected_index = rand() % rcl.size(); // Seleciona uma aresta aleatoriamente da RCL.
+        EdgeWithDifference edge = edges[rcl[selected_index]];
+        used_edges[rcl[selected_index]] = true; // Marca a aresta como usada.
+
+        Node* node1 = graph.search_node_by_id(edge.u);
+        Node* node2 = graph.search_node_by_id(edge.v);
+
+        if(!is_verified[node1->_id - 1] && !is_verified[node2->_id - 1]) {
+            vector<bool> adjacency = check_adjacent_trees(forest, edge);
+
+            if(forest.size() == 0) {
+                vector<Node*> tree;
+                tree.push_back(node1);
+                tree.push_back(node2);
+                forest.push_back(tree);
+            } else {
+                int tree_id = -1;
+                float min_gap = numeric_limits<float>::max();
+
+                for(int i = 0; i < forest.size(); i++) {
+                    if(!adjacency[i]) {
+                        float current_gap = total_gap_tree(forest[i], node1, node2);
+                        if(current_gap < min_gap) {
+                            min_gap = current_gap;
+                            tree_id = i;
+                        }
+                    }
+                }
+
+                if(tree_id == -1) {
+                    vector<Node*> tree;
+                    tree.push_back(node1);
+                    tree.push_back(node2);
+                    forest.push_back(tree);
+                } else {
+                    forest[tree_id].push_back(node1);
+                    forest[tree_id].push_back(node2);
+                }
+            }
+            is_verified[node1->_id - 1] = true;
+            is_verified[node2->_id - 1] = true;
+        }
+    }
+
+    // Passo 3: Expandir as árvores com os vértices não cobertos.
+    for(int i = 0; i < graph.get_number_of_nodes(); i++) {
+        if(!is_verified[i]) {
+            Node* node = graph.search_node_by_id(i+1);
+            if(forest.size() < p) {
+                // Cria uma nova árvore e garante que tenha pelo menos dois vértices.
+                vector<Node*> new_tree;
+                new_tree.push_back(node);
+
+                // Encontra um segundo vértice não verificado para adicionar à nova árvore.
+                for(int j = i + 1; j < graph.get_number_of_nodes(); j++) {
+                    if(!is_verified[j]) {
+                        Node* second_node = graph.search_node_by_id(j+1);
+                        new_tree.push_back(second_node);
+                        is_verified[j] = true;
+                        break;
+                    }
+                }
+
+                forest.push_back(new_tree);
+            } else {
+                // Adiciona o nó à árvore com o menor gap.
+                int tree_id = -1;
+                float min_gap = numeric_limits<float>::max();
+
+                for(int j = 0; j < forest.size(); j++) {
+                    float current_gap = total_gap_tree(forest[j], node);
+                    if(current_gap < min_gap) {
+                        min_gap = current_gap;
+                        tree_id = j;
+                    }
+                }
+
+                forest[tree_id].push_back(node);
+            }
+            is_verified[i] = true;
+        }
+    }
+
+    return forest;
+}
+
+vector<vector<Node*>> greedy_reactive_randomized_algorithm(Graph& graph, size_t p, vector<float>& alfas, int bloco) {
+    vector<vector<Node*>> best_forest;  // Floresta com a melhor solução encontrada.
+    float best_gap = numeric_limits<float>::max();  // Melhor gap total encontrado.
+    float best_alfa = 0.0f; // Inicializa o melhor alfa.
+
+    vector<float> probabilidades(alfas.size(), 1.0 / alfas.size()); // Inicializa as probabilidades de cada alfa.
+    vector<float> medias(alfas.size(), 0.0); // Média de qualidade para cada alfa.
+    vector<int> contadores(alfas.size(), 0); // Número de vezes que cada alfa foi usado.
+
+    for(int iteracao = 0; iteracao < bloco; iteracao++) {
+        // Seleciona um alfa de acordo com as probabilidades.
+        float rand_val = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+        int alfa_index = 0;
+        float cumulative_probability = 0.0;
+        for(int i = 0; i < alfas.size(); i++) {
+            cumulative_probability += probabilidades[i];
+            if (rand_val <= cumulative_probability) {
+                alfa_index = i;
+                break;
+            }
+        }
+        float alfa = alfas[alfa_index];
+
+        // Aplica o algoritmo guloso randomizado com o alfa selecionado.
+        vector<vector<Node*>> solucao_atual = greedy_randomized_algorithm(graph, p, alfa);
+
+        // Avalia a qualidade da solução atual.
+        float qualidade = calculate_total_gap(solucao_atual); // Função que calcula o gap total da solução.
+
+        // Se a solução atual for melhor que a melhor solução, atualiza a melhor solução.
+        if(qualidade < best_gap) {
+            best_forest = solucao_atual;
+            best_gap = qualidade;
+            best_alfa = alfa;
+        }
+
+        // Atualiza as estatísticas da solução para o alfa escolhido.
+        medias[alfa_index] = (medias[alfa_index] * contadores[alfa_index] + qualidade) / (contadores[alfa_index] + 1);
+        contadores[alfa_index]++;
+
+        // A cada bloco de iterações, atualiza as probabilidades
+        if(iteracao % bloco == 0 && iteracao != 0) {
+            float soma_inversa_media = 0.0;
+            for(int i = 0; i < alfas.size(); i++) {
+                soma_inversa_media += 1.0 / medias[i];
+            }
+
+            for(int i = 0; i < alfas.size(); i++) {
+                probabilidades[i] = (1.0 / medias[i]) / soma_inversa_media; // Ajusta a probabilidade com base nas médias
+            }
+        }
+    }
+
+    cout << "Melhor alfa: " << best_alfa << endl;
+
+    return best_forest;  // Retorna a melhor solução encontrada.
 }
 
 int main(int argc, char* argv[])
 {
     // Criando o grafo.
     ifstream input_file;
-    input_file.open("instances_example/n100plap1i1.txt");
+    input_file.open("instances_example/n100plap2i1.txt");
     Graph graph = Graph(input_file, false, true, true);
 
     // Número de subgrafos
-    size_t p = 5;
+    size_t p = 10;
 
-    vector<vector<Node*>> forest = initial_construction(graph, p);
+    vector<vector<Node*>> forest = greedy_algorithm(graph, p);
 
     float total_gap = 0;
     int cont = 0;
@@ -298,43 +441,44 @@ int main(int argc, char* argv[])
     cout << "Gap total: " << total_gap << endl;
     cout << "Numero de nos: " << cont << endl << endl;
 
-    vector<vector<Node*>> subgraphs = greedy_algorithm(graph, p);
+    forest = greedy_randomized_algorithm(graph, p, 0.5);
 
     total_gap = 0;
     cont = 0;
     i = 1;
-    for(vector<Node*> subgraph : subgraphs) {
+    for(vector<Node*> tree : forest) {
         cout << "Subgrafo " << i << endl;
-        for(Node* node : subgraph) {
+        for(Node* node : tree) {
             cout << node->_id << " -> " << node->_weight << endl;
             cont++;
         }
         cout << endl;
         i++;
-        total_gap += total_gap_tree(subgraph);
+        total_gap += total_gap_tree(tree);
     }
 
     cout << "Gap total: " << total_gap << endl;
     cout << "Numero de nos: " << cont << endl << endl;
 
-//    subgraphs = randomized_greedy_algorithm(graph, p, 0.1);
-//
-//    total_gap = 0;
-//    cont = 0;
-//    i = 1;
-//    for(vector<Node*> subgraph : subgraphs) {
-//        cout << "Subgrafo " << i << endl;
-//        for(Node* node : subgraph) {
-//            cout << node->_id << " -> " << node->_weight << endl;
-//            cont++;
-//        }
-//        cout << endl;
-//        i++;
-//        total_gap += total_gap_tree(subgraph);
-//    }
-//
-//    cout << "Gap total: " << total_gap << endl;
-//    cout << "Numero de nos: " << cont << endl;
+    vector<float> alfas = {0.1, 0.2, 0.3, 0.4};
+    forest = greedy_reactive_randomized_algorithm(graph, p, alfas, 100);
+
+    total_gap = 0;
+    cont = 0;
+    i = 1;
+    for(vector<Node*> tree : forest) {
+        cout << "Subgrafo " << i << endl;
+        for(Node* node : tree) {
+            cout << node->_id << " -> " << node->_weight << endl;
+            cont++;
+        }
+        cout << endl;
+        i++;
+        total_gap += total_gap_tree(tree);
+    }
+
+    cout << "Gap total: " << total_gap << endl;
+    cout << "Numero de nos: " << cont << endl << endl;
 
     return 0;
 }
