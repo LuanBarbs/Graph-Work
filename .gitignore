@@ -7,7 +7,6 @@ doxygen/
 *.tmp
 *.swp
 
-*.cbp
 *.depend
 *.layout
 
