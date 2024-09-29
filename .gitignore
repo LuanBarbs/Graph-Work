@@ -13,5 +13,3 @@ doxygen/
 *.o
 *.a
 *.lib
-
-*.exe
