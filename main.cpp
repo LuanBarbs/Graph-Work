@@ -494,68 +494,141 @@ vector<Graph*> greedy_reactive_randomized_algorithm(Graph& graph, size_t p, vect
 
 int main(int argc, char* argv[])
 {
-    srand(time(NULL)); // Inicializa a semente aleatória com o tempo atual
+    srand(time(NULL)); // Inicializa a semente aleatória com o tempo atual.
+
+//    if(argc != 3) {
+//        cerr << "Programa nao inicializado da forma correta!" << endl << "Execute <nome_instancia> <arquivo_saida>" << endl;
+//        cout << "O arquivo de entrada deve estar na pasta instances_example e deve ter o mesmo formato para leitura." << endl;
+//        return 1;
+//    }
+
+    string inputFileName = "n100d03p1i1.txt";
+    string outputFileName = "resultado.dat";
+
+//    string inputFileName = argv[1];
+//    string outputFileName = argv[2];
+
+    // Criando um arquivo de entrada.
+    ifstream input_file("instances_example/" + inputFileName);
+    if(!input_file) {
+        cerr << "Erro ao abrir o arquivo de entrada!" << endl;
+        return 1;
+    }
 
     // Criando o grafo.
-    ifstream input_file;
-    input_file.open("instances_example/n100plap1i1.txt");
-    Graph graph = Graph(input_file, false, true, true);
+    Graph grafo = Graph(input_file, false, true, true);
 
-    // Número de subgrafos
-    size_t p = 5;
+    // Numero de subgrafos.
+    size_t p = 0;
 
-    vector<Graph*> forest = greedy_algorithm(graph, p);
+    // Valor alfa.
+    float alpha = 0.1;
 
-    float total_gap = 0;
-    int i = 1;
-    for(Graph* tree : forest) {
-        cout << endl << "Subgrafo " << i << endl;
-        tree->print_graph();
-        cout << tree->get_number_of_nodes() << endl;
-        i++;
-        total_gap += total_gap_tree(*tree);
-        cout << endl;
+    // Vetor alfa.
+    vector<float> alfas = {0.1, 0.15, 0.20, 0.25, 0.3};
+
+    // Numero de iteracoes.
+    int numIter = 100;
+
+    // Solução.
+    vector<Graph*> forest;
+
+    int choise = 0;
+
+    while(choise != -1) {
+        if(choise == 0) {
+            cout << "Escolha alguma das funcionalidades a seguir (digite o numero):" << endl;
+            cout << "[1] Imprimir grafo. [2] - Gerar solucao com algoritmo guloso. [3] Gerar solucao com algoritmo guloso randomizado." << endl;
+            cout << "[4] Gerar solucao com algoritmo guloso randomizado reativo. [-1] - SAIR" << endl;
+        }
+        cin >> choise;
+        switch(choise) {
+            case 1: {
+                ofstream output_file(outputFileName);
+                if(!output_file) {
+                    cerr << "Erro ao abrir o arquivo de saida." << endl;
+                    return 1;
+                }
+                else grafo.print_graph(output_file);
+                choise = 0;
+                break;
+            }
+            case 2: {
+                cout << "Escolha o numero de subgrafos:" << endl;
+                cin >> p;
+                forest = greedy_algorithm(grafo, p);
+                cout << "Escolha uma das opcoes a seguir (digite o numero - se nao funcionar coloque o valor novamente):" << endl;
+                cout << "[5] Imprimir subgrafos. [6] Imprimir gap total. [-1] -SAIR" << endl;
+                cin >> choise;
+                break;
+            }
+            case 3: {
+                cout << "Escolha o numero de subgrafos:" << endl;
+                cin >> p;
+                cout << "Escolha o valor de alfa (de 0 a 1):" << endl;
+                cin >> alpha;
+                forest = greedy_randomized_algorithm(grafo, p, alpha);
+                cout << "Escolha uma das opcoes a seguir (digite o numero - se nao funcionar coloque o valor novamente):" << endl;
+                cout << "[5] Imprimir subgrafos. [6] Imprimir gap total. [-1] -SAIR" << endl;
+                cin >> choise;
+                break;
+            }
+            case 4: {
+                cout << "Escolha o numero de subgrafos:" << endl;
+                cin >> p;
+                cout << "Escolha os valores de alfa (5 valores - predefinido):" << endl;
+                for(int i = 0; i < 5; i++) {
+                    cout << "Escolha o valor:" << endl;
+                    cin >> alfas[i];
+                }
+                cout << "Escolha quantas iteracoes:" << endl;
+                cin >> numIter;
+                forest = greedy_reactive_randomized_algorithm(grafo, p, alfas, numIter);
+                cout << "Escolha uma das opcoes a seguir (digite o numero - se nao funcionar coloque o valor novamente):" << endl;
+                cout << "[5] Imprimir subgrafos. [6] Imprimir gap total. [-1] SAIR" << endl;
+                cin >> choise;
+                break;
+            }
+            case 5: {
+                cout << "Escolha qual subgrafo (valores possiveis: 0 a " << p-1 << "):" << endl;
+                int i = 0;
+                cin >> i;
+                if(i < 0 || i >= p) {
+                    cout << "Valor de subgrafo impossivel." << endl;
+                    choise = 5;
+                }
+                ofstream output_file(outputFileName);
+                if(!output_file) {
+                    cerr << "Erro ao abrir o arquivo de saida." << endl;
+                    return 1;
+                }
+                else forest[i]->print_graph(output_file);
+                cout << "Escolha uma das opcoes a seguir (digite o numero - se nao funcionar coloque o valor novamente):" << endl;
+                cout << "[5] Imprimir novo subgrafo. [0] Voltar. [-1] SAIR." << endl;
+                cin >> choise;
+                break;
+            }
+            case 6: {
+                float total_gap = 0;
+                for(Graph* tree : forest) {
+                    total_gap += total_gap_tree(*tree);
+                    cout << endl;
+                }
+                cout << "Gap total: " << total_gap << endl;
+                cout << "[5] Imprimir subgrafos. [-1] SAIR." << endl;
+                cin >> choise;
+                break;
+            }
+            default:
+                choise = -1;
+                break;
+        }
+
     }
-
-    cout << "Gap total: " << total_gap << endl;
-
-    vector<Graph*> forest2 = greedy_randomized_algorithm(graph, p, 0.1);
-
-    total_gap = 0;
-    i = 1;
-    for(Graph* tree : forest2) {
-        cout << endl << "Subgrafo " << i << endl;
-        tree->print_graph();
-        cout << tree->get_number_of_nodes() << endl;
-        i++;
-        total_gap += total_gap_tree(*tree);
-        cout << endl;
-    }
-
-    cout << "Gap total: " << total_gap << endl;
-
-    vector<float> alfas = {0.6, 0.625, 0.65, 0.675, 0.7};
-    vector<Graph*> forest3 = greedy_reactive_randomized_algorithm(graph, p, alfas, 100);
-
-    total_gap = 0;
-    i = 1;
-    for(Graph* tree : forest2) {
-        cout << endl << "Subgrafo " << i << endl;
-        tree->print_graph();
-        cout << tree->get_number_of_nodes() << endl;
-        i++;
-        total_gap += total_gap_tree(*tree);
-        cout << endl;
-    }
-
-    cout << "Gap total: " << total_gap << endl;
 
     // Desalocar a memória dos subgrafos
     for(Graph* tree : forest) {
-        delete tree; // Libera a memória de cada subgrafo
-    }
-    for(Graph* tree : forest2) {
-        delete tree; // Libera a memória de cada subgrafo
+        delete tree; // Libera a memória de cada subgrafo.
     }
 
     return 0;
