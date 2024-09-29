@@ -496,17 +496,14 @@ int main(int argc, char* argv[])
 {
     srand(time(NULL)); // Inicializa a semente aleatória com o tempo atual.
 
-//    if(argc != 3) {
-//        cerr << "Programa nao inicializado da forma correta!" << endl << "Execute <nome_instancia> <arquivo_saida>" << endl;
-//        cout << "O arquivo de entrada deve estar na pasta instances_example e deve ter o mesmo formato para leitura." << endl;
-//        return 1;
-//    }
+    if(argc != 3) {
+        cerr << "Programa nao inicializado da forma correta!" << endl << "Execute <nome_instancia> <arquivo_saida>" << endl;
+        cout << "O arquivo de entrada deve estar na pasta instances_example e deve ter o mesmo formato para leitura." << endl;
+        return 1;
+    }
 
-    string inputFileName = "n100d03p1i1.txt";
-    string outputFileName = "resultado.dat";
-
-//    string inputFileName = argv[1];
-//    string outputFileName = argv[2];
+    string inputFileName = argv[1];
+    string outputFileName = argv[2];
 
     // Criando um arquivo de entrada.
     ifstream input_file("instances_example/" + inputFileName);
